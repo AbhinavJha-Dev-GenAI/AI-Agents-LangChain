@@ -1,81 +1,52 @@
-# 04. Tool Integration: Giving Agents Hands 🛠️
+# 04. Tool Integration 🛠️🔌
 
-An LLM is just a brain. **Tools** are the hands that allow it to interact with the world — whether it’s searching the web, querying a database, or sending an email.
+Tools are the "hands" of an AI agent. Without them, an LLM is just a brain in a jar. Tools allow agents to interact with the real world (Search, Code, APIs, Databases).
+
+## 1. How Tool Calling Works 📡
+
+Tool calling is a two-step communication between the LLM and your code:
+1.  **Selection**: You provide a list of tool descriptions (JSON schemas). The LLM decides *which* tool to use and *what* arguments to pass.
+2.  **Execution**: Your Python code runs the actual function and sends the result back to the LLM.
+
+> [!IMPORTANT]
+> **The LLM does NOT run the tool.** Your server runs the code. The LLM only generates the JSON to tell you what to run.
 
 ---
 
-## 🏗️ How Tool Calling Works
+## 2. Types of Tools 🎭
 
-Contrary to popular belief, the LLM does not *run* the tool. 
-1.  **System**: Sends tool definitions (JSON schema) to the LLM.
-2.  **LLM**: Decides to use a tool and returns the arguments (e.g., `{"location": "London"}`).
-3.  **App**: Executes the Python function/API with those arguments.
-4.  **LLM**: Receives the tool output and continues reasoning.
+*   **Pre-built Tools**: Search (Tavily, DuckDuckGo), YouTube search, Wikipedia.
+*   **Custom Tools**: Wrapping any Python function.
+*   **Structured Tools**: Tools that require complex, nested JSON inputs.
 
 ---
 
-### 1. [Custom Tool Creation](./Custom-Tool-Creation.md)
-Crafting high-quality utilities for your agents. Focus on docstring optimization and Pydantic schemas.
+## 3. Best Practices for Tool Design 📝
 
-### 2. [Native Tool Calling](./Native-Tool-Calling.md)
-Mastering established patterns for OpenAI, Anthropic, and Gemini to ensure 99% accuracy in tool selection.
+- **Clear Descriptions**: The LLM relies solely on the tool's docstring. Be extremely clear about what the tool does and what the parameters mean.
+- **Error Handling**: If a tool fails (e.g., 404 API error), catch it and return it as a "Tool Result" so the LLM can try an alternative.
+- **Sandboxing**: Never let an LLM run code (Python/SQL) directly on your production server. Always use a sandboxed environment (e.g., Docker or `E2B`).
 
-### 3. API Connections
-How to securely connect agents to external SaaS APIs (Slack, GitHub, Twitter).
+---
 
-## 🧩 Creating Custom Tools
-
-In LangChain, you can create tools using the `@tool` decorator.
+## 🛠️ Essential Snippet (Defining a Custom Tool)
 
 ```python
-from langchain_core.tools import tool
+from langchain.tools import tool
 
 @tool
-def multiply(a: int, b: int) -> int:
-    """Multiplies two integers together."""
-    return a * b
+def calculate_shipping_cost(weight: float, zip_code: str) -> str:
+    """Useful to calculate shipping costs for orders. 
+    Weight must be in kg. Returns cost in USD."""
+    # Logic to call shipping API...
+    cost = weight * 5.0 
+    return f"The shipping cost to {zip_code} is ${cost}"
+
+# LangChain automatically converts this into a JSON schema 
+# that can be passed to an LLM like GPT-4 or Claude 3.
 ```
 
-### 🗝️ The Secret Sauce: Docstrings
-The LLM selects a tool based on its **name** and **description**. If your docstring is vague, the agent will hallucinate.
-- **Bad**: `def search(q): return ...`
-- **Good**: `def search_tavily(query: str): """Use this tool to search the internet for real-time information. Input should be a search string."""`
-
 ---
 
-## 🤖 Native Tool Calling (OpenAI/Anthropic)
-
-Modern LLMs support native tool calling, which is more robust than "parsing JSON from text."
-- **Binding Tools**:
-  ```python
-  llm_with_tools = llm.bind_tools([multiply, search_api])
-  ```
-
----
-
-## 🛠️ Handling Challenges
-
-### 1. Tool Hallucinations
-Sometimes agents try to use tools that don't exist or pass wrong arguments.
-- **Solution**: Use Pydantic schemas for strict validation and retry loops in LangGraph.
-
-### 2. Large Data Outputs
-Tools might return massive datasets that blow the context window.
-- **Solution**: Summarize tool outputs or store them in a vector DB and only return the URI/ID to the LLM.
-
-### 3. Error Handling
-If an API fails, the agent should know *why* so it can try again or pivot.
-- **Solution**: Wrap tool logic in try-except blocks and return the error message as an "Observation".
-
----
-
-## 📂 Popular Toolkits
-
-- **Search**: Tavily, DuckDuckGo, Serper.
-- **Compute**: Python REPL, Wolfram Alpha.
-- **Files**: CSV/SQL/PDF Agents.
-- **Web**: Playwright, Selenium.
-
----
-
-**Next Steps**: Now that your agent can use tools, learn how to build teams of agents in [`05-Multi-Agent-Systems`](../05-Multi-Agent-Systems/).
+## 🌎 Summary
+Mastering tool integration is about providing the LLM with the right "Interfaces." The better your tool descriptions, the more reliable your agent will be.

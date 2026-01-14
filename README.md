@@ -10,12 +10,15 @@
 This folder is dedicated to the next evolution of AI: **Autonomous Agents**. You will learn how to transition from simple chatbots to intelligent systems that can plan, reason, and use tools to solve complex, multi-step problems.
 
 ### Core Topics
-- ✅ **Agentic Reasoning**: Understanding ReAct (Reason + Act), Plan-and-Execute, and Chain-of-Thought (CoT).
-- ✅ **LangChain/LangGraph**: Mastering the industry-standard frameworks for building cognitive architectures.
-- ✅ **Tool Integration**: Teaching LLMs to use external APIs, databases, calculators, and search engines.
-- ✅ **Multi-Agent Systems**: Designing collaborative workflows where specialized agents work together (CrewAI, AutoGen).
-- ✅ **State Management**: Managing short-term and long-term memory in cyclic agent workflows.
-- ✅ **Human-in-the-Loop**: Designing safe agents that can ask for help when uncertain.
+- ✅ **[01. Agent Fundamentals](01-Agent-Fundamentals/README.md)**: Reasoning patterns, Agent types, ReAct.
+- ✅ **[02. LangChain Mastery](02-LangChain/README.md)**: LCEL, Chains, Prompts, Memory.
+- ✅ **[03. LangGraph](03-LangGraph/README.md)**: Stateful Agents, Cycles, Persistence.
+- ✅ **[04. Tool Integration](04-Tool-Integration/README.md)**: Tool Calling, Custom Tools, Schemas.
+- ✅ **[05. Multi-Agent Systems](05-Multi-Agent-Systems/README.md)**: CrewAI, AutoGen, Collaboration.
+- ✅ **[06. Agent Architectures](06-Agent-Architectures/README.md)**: Cognitive patterns, Reflexion.
+- ✅ **[07. Agent Projects](07-Projects/README.md)**: Analysts, Researchers, Coders.
+- ✅ **[08. Research Papers](08-Research-Papers/README.md)**: ReAct, Chain-of-Thought, Reflexion.
+- ✅ **[09. Interview Prep](09-Interview-Prep/README.md)**: Design Q&A, Debugging scenarios.
 
 ---
 

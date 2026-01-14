@@ -1,66 +1,69 @@
-# 03. LangGraph: Stateful Agents 🕸️
+# 03. LangGraph: Stateful Agents 🕸️💾
 
-While LangChain is great for Directed Acyclic Graphs (DAGs), real-world agents are often **cyclic**. **LangGraph** is a library for building stateful, multi-agent applications with LLMs.
+While standard LangChain is great for linear paths (DAGs), real-world agents often need to **loop** (e.g., "If the tool output is bad, try again"). LangGraph is the library for building cyclic, stateful multi-agent systems.
 
----
+## 1. Why LangGraph? 🔄
 
-## 🏗️ Why LangGraph?
+Traditional chains are hard to control when:
+- You need the agent to self-correct.
+- You want multiple agents to pass data back and forth.
+- You need to pause the agent for "Human-in-the-Loop" approval.
 
-Standard chains have no "cycles" — you can't easily go back from Step 3 to Step 1. LangGraph allows:
-1.  **Cyclic Graphs**: Loop back for self-correction or multi-turn reasoning.
-2.  **Fine-grained State Management**: Control exactly what data passes between steps.
-3.  **Human-in-the-Loop**: Pause the graph, wait for human approval, and resume.
-
----
-
-## 🧩 Core Concepts
-
-### 1. [Nodes & Edges](./Graphs-Nodes-Edges.md)
-The foundational building blocks of a graph. Nodes perform work, and edges define the flow of control.
-
-### 2. [State & Persistence](./State-Persistence.md)
-How to manage shared memory and ensure agents survive crashes and support long-running tasks.
-
-### 3. [Time Travel & Debugging](./Time-Travel-Debugging.md)
-The ability to rewind, inspect, and fork an agent's state to fix errors and analyze performance.
+**LangGraph solves this by treating the agent as a State Machine.**
 
 ---
 
-## 🛠️ Advanced Features
+## 2. Core Concepts 🧬
 
-### Persistence (Checkpointers)
-LangGraph can save the state of a thread to a database (SQLite, Postgres, etc.).
-- **Benefit**: If your server crashes, the agent can resume right where it left off.
-- **Threads**: Support multiple concurrent conversations effortlessly.
+### The State
+A shared dictionary that stores the "memory" of the graph. Every node can read from and write to this state.
 
-### Time Travel ⏳
-Because state is versioned (checkpointed), you can:
-1.  **View** previous states of the graph.
-2.  **Rewind** to a specific step.
-3.  **Fork** a state to test a different path or correct an LLM error manually.
+### Nodes (Functions)
+Individual steps in your workflow (e.g., "Call LLM," "Call Tool," "Format Answer").
 
----
-
-## 🚀 Building a Self-Correction Agent (Self-RAG)
-
-A classic LangGraph pattern:
-1.  **Retrieve**: Fetch docs.
-2.  **Grade**: Are these docs relevant?
-3.  **Generate**: If yes, generate answer.
-4.  **Reflect**: Does the answer actually address the user query?
-5.  **Loop**: If no, go back to Search or Refine.
+### Edges (Transitions)
+The path between nodes.
+- **Normal Edges**: Always go from Node A to Node B.
+- **Conditional Edges**: Use a function to decide which node to go to next (e.g., "If result is successful, go to Finish; else, go back to Search").
 
 ---
 
-## 📊 LangGraph vs. LangChain LCEL
+## 3. Persistence & Time Travel ⏳
 
-| Feature | LCEL | LangGraph |
-| :--- | :--- | :--- |
-| **Logic** | Linear / Branching | Cyclic |
-| **State** | Implicit / Hard to manage | Explicit & Persistent |
-| **Memory** | Basic Chat History | Full State Persistence |
-| **Complex Teams** | Very Difficult | Native Support |
+LangGraph allows you to **Checkpoint** the state after every node.
+- **Human-in-the-loop**: Pause the agent, let a human review the state, modify it if needed, and let the agent continue.
+- **Time Travel**: Rewind the agent to a previous step to see where it went wrong.
 
 ---
 
-**Next Steps**: Learn how to bridge your graph to the real world in [`04-Tool-Integration`](../04-Tool-Integration/).
+## 🛠️ Essential Snippet (Basic LangGraph Flow)
+
+```python
+from langgraph.graph import StateGraph, END
+from typing import TypedDict, Annotated
+
+# 1. Define State
+class State(TypedDict):
+    input: str
+    output: str
+
+# 2. Define Nodes
+def call_model(state: State):
+    # Logic to call LLM...
+    return {"output": "Processed " + state["input"]}
+
+# 3. Build Graph
+workflow = StateGraph(State)
+workflow.add_node("agent", call_model)
+workflow.set_entry_point("agent")
+workflow.add_edge("agent", END)
+
+# 4. Compile and Run
+app = workflow.compile()
+response = app.invoke({"input": "Hello Agents"})
+```
+
+---
+
+## 📊 Summary
+LangGraph is the preferred way to build **Production Agents**. It provides the reliability of a coded state machine with the flexibility of an LLM reasoning engine.
